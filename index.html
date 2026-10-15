@@ -62,10 +62,6 @@ body{
 .b3{width:360px; height:360px; right:-120px; top:-80px; background:var(--blob3); opacity:.35}
 .b4{width:380px; height:380px; right:-60px; bottom:-140px; background:var(--blob4); opacity:.35}
 @media (prefers-reduced-motion:no-preference){
-  .b1{animation:float1 18s ease-in-out infinite alternate}
-  .b2{animation:float2 22s ease-in-out infinite alternate}
-  .b3{animation:float2 20s ease-in-out infinite alternate-reverse}
-  .b4{animation:float1 24s ease-in-out infinite alternate-reverse}
   @keyframes float1{to{transform:translate(80px,60px) scale(1.12)}}
   @keyframes float2{to{transform:translate(-60px,80px) scale(.92)}}
 }
@@ -105,7 +101,7 @@ h1{font-size:clamp(42px,9vw,92px); font-weight:800; line-height:1; letter-spacin
 
 /* плитки */
 .tiles{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; margin:28px auto 0; width:min(960px,100%)}
-.tile{font:inherit; color:var(--ink); background:color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter:blur(6px);
+.tile{font:inherit; color:var(--ink); background:color-mix(in srgb, var(--surface) 90%, transparent);
   border:1px solid var(--line); border-radius:18px; padding:20px 10px; cursor:pointer; display:grid; justify-items:center; gap:8px; font-weight:500}
 .tile svg{width:22px; height:22px}
 .tile[aria-selected="true"]{border-color:var(--ink); box-shadow:0 10px 30px -18px rgba(30,40,80,.45)}
@@ -167,7 +163,7 @@ h1{font-size:clamp(42px,9vw,92px); font-weight:800; line-height:1; letter-spacin
 
 /* переключатель языка */
 .lang{position:fixed; z-index:5; top:calc(14px + env(safe-area-inset-top, 0px)); right:max(16px, env(safe-area-inset-right, 0px));
-  display:flex; gap:2px; padding:4px; border-radius:999px; background:color-mix(in srgb, var(--surface) 85%, transparent); border:1px solid var(--line); backdrop-filter:blur(8px)}
+  display:flex; gap:2px; padding:4px; border-radius:999px; background:color-mix(in srgb, var(--surface) 92%, transparent); border:1px solid var(--line)}
 .lang button{font:inherit; font-size:13px; font-weight:600; letter-spacing:.02em; color:var(--muted); background:transparent; border:0; border-radius:999px; padding:6px 11px; cursor:pointer}
 .lang button[aria-pressed="true"]{background:var(--ink); color:var(--bg)}
 
@@ -182,7 +178,7 @@ h1{font-size:clamp(42px,9vw,92px); font-weight:800; line-height:1; letter-spacin
 @media (prefers-reduced-motion:no-preference){ .face{animation:bob 6s ease-in-out infinite} @keyframes bob{50%{transform:translateY(-6px)}} }
 
 
-.face{position:relative; cursor:pointer}
+.face{position:relative; cursor:pointer; will-change:transform}
 .face .closed,.face .half{position:absolute; left:0; top:0; opacity:0}
 .face.f-half .half{opacity:1}
 .face.f-closed .closed{opacity:1}
@@ -796,7 +792,7 @@ function fallback2D(cv){
     halfType = hf.HALF_FLOAT_OES; internal = gl.RGBA; filtering = gl.LINEAR;
   }
 
-  var CFG = {SIM:160, DYE: innerWidth < 700 ? 768 : 1440, PRESSURE_IT:20, CURL:22, VEL_DISS:0.8, DYE_DISS:1.1, PRESSURE:0.8, RADIUS:0.2, FORCE:4200};
+  var CFG = {SIM:128, DYE: innerWidth < 700 ? 384 : 720, PRESSURE_IT:12, CURL:22, VEL_DISS:0.8, DYE_DISS:1.1, PRESSURE:0.8, RADIUS:0.2, FORCE:4200};
 
   var VS = 'precision highp float;attribute vec2 aPosition;varying vec2 vUv,vL,vR,vT,vB;uniform vec2 texelSize;void main(){vUv=aPosition*.5+.5;vL=vUv-vec2(texelSize.x,0.);vR=vUv+vec2(texelSize.x,0.);vT=vUv+vec2(0.,texelSize.y);vB=vUv-vec2(0.,texelSize.y);gl_Position=vec4(aPosition,0.,1.);}';
   var P = 'precision highp float;precision highp sampler2D;varying vec2 vUv,vL,vR,vT,vB;';
@@ -862,7 +858,7 @@ function fallback2D(cv){
 
   var dye, vel, div, curlT, pres;
   function sizeCanvas(){
-    var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    var dpr = 1;
     cv.width = Math.floor(innerWidth * dpr); cv.height = Math.floor(innerHeight * dpr);
   }
   function initFBOs(){
@@ -897,7 +893,7 @@ function fallback2D(cv){
   addEventListener('pointermove', function(e){
     var x = e.clientX / innerWidth, y = 1 - e.clientY / innerHeight;
     if(last){
-      var dx = x - last[0], dy = y - last[1], n = Math.min(6, Math.max(1, Math.ceil(Math.hypot(dx, dy) / 0.012)));
+      var dx = x - last[0], dy = y - last[1], n = Math.min(3, Math.max(1, Math.ceil(Math.hypot(dx, dy) / 0.02)));
       for(var i=1;i<=n;i++){ queue.push([last[0] + dx*i/n, last[1] + dy*i/n, dx * CFG.FORCE / Math.sqrt(n), dy * CFG.FORCE / Math.sqrt(n)]); }
     }
     last = [x, y]; lastMove = performance.now();
@@ -938,19 +934,34 @@ function fallback2D(cv){
     gl.uniform1f(prog.advect.u.dissipation, CFG.DYE_DISS); blit(dye.write); dye.swap();
   }
 
-  var prev = performance.now();
+  var prev = performance.now(), fc = 0, slowFrames = 0, degraded = false, running = true;
+  // пауза, когда вкладка скрыта
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden){ running = false; }
+    else if(!running){ running = true; prev = performance.now(); requestAnimationFrame(frame); }
+  });
+  function degrade(){
+    // слабое устройство: снижаем качество симуляции
+    degraded = true; CFG.DYE = 384; CFG.SIM = 96; CFG.PRESSURE_IT = 8;
+    try { initFBOs(); } catch(e){}
+  }
   function frame(now){
-    var dt = Math.min((now - prev) / 1000, 0.016667); prev = now;
+    if(!running) return;
+    var raw = now - prev;
+    var dt = Math.min(raw / 1000, 0.016667); prev = now; fc++;
+    if(!degraded){ slowFrames = raw > 26 ? slowFrames + 1 : Math.max(0, slowFrames - 1); if(slowFrames > 45) degrade(); }
     hue += dt * 0.6;
     // фантомный курсор: плавная лента слева направо, пока посетитель не двигает мышь
-    if(now - lastMove > 2500){
+    if(now - lastMove > 2500 && (fc & 1) === 0){
       var t = (now - t0) / 1000;
       var ph = (t * 0.08) % 1;
       var px = -0.05 + ph * 1.1, py = 0.62 + 0.06*Math.sin(t*0.9);
       var vx = 0.09 * CFG.FORCE * 0.016, vy = 0.054*Math.cos(t*0.9)*CFG.FORCE*0.016;
-      splat(px, py, vx, vy, nextColor().map(function(v){ return v*0.5; }));
+      splat(px, py, vx, vy, nextColor().map(function(v){ return v*0.6; }));
     }
-    while(queue.length){ var q = queue.shift(); splat(q[0], q[1], q[2], q[3], nextColor()); }
+    var budget = 6;
+    while(queue.length && budget--){ var q = queue.shift(); splat(q[0], q[1], q[2], q[3], nextColor()); }
+    if(queue.length > 12) queue.splice(0, queue.length - 12);
     step(dt);
     prog.display.use(); gl.uniform1i(prog.display.u.uTexture, dye.read.attach(0)); blit(null);
     requestAnimationFrame(frame);
