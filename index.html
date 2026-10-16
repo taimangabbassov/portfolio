@@ -22,6 +22,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="theme-color" content="#fbfaf8">
+<script>(function(){try{if(!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))document.documentElement.classList.add('intro')}catch(e){}})();</script>
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script>
 <script defer src="/_vercel/insights/script.js"></script>
 <style>html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
@@ -84,7 +85,7 @@ body{
   @keyframes float2{to{transform:translate(-60px,80px) scale(.92)}}
 }
 .watermark{position:absolute; left:0; right:0; top:560px; text-align:center; overflow:hidden; z-index:0; pointer-events:none;
-  font-weight:800; font-size:clamp(90px,19vw,260px); letter-spacing:-.04em; color:var(--mark); white-space:nowrap; line-height:1}
+  font-weight:800; font-size:clamp(60px,18vw,260px); letter-spacing:-.04em; color:var(--mark); white-space:nowrap; line-height:1}
 
 main{position:relative; z-index:1; max-width:960px; margin:0 auto}
 
@@ -244,13 +245,36 @@ footer{position:relative; z-index:1; text-align:center; color:var(--muted); font
   .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:640px){ .hero{padding-top:76px} }
+
+/* Анимация входа: только при первой загрузке и если не включено «уменьшение движения» */
+@keyframes inUp{from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:none}}
+@keyframes inFade{from{opacity:0} to{opacity:1}}
+@keyframes wipe{from{clip-path:inset(-20% 100% -20% 0); filter:blur(10px); opacity:.2} 60%{filter:blur(2px); opacity:1} to{clip-path:inset(-20% -5% -20% 0); filter:none; opacity:1}}
+@keyframes pop{0%{opacity:0; scale:.55} 55%{opacity:1; scale:1.07} 75%{scale:.97} 100%{opacity:1; scale:1}}
+@keyframes spread{from{opacity:0; letter-spacing:.25em} to{opacity:1; letter-spacing:-.04em}}
+html.intro .hello{animation:inUp .7s cubic-bezier(.2,.8,.2,1) .1s both}
+html.intro h1{animation:wipe 1s cubic-bezier(.6,0,.2,1) .2s both}
+html.intro .face{animation:pop .9s cubic-bezier(.2,.8,.2,1) .75s both, bob 6s ease-in-out 1.7s infinite}
+html.intro .watermark{animation:spread 1.8s cubic-bezier(.2,.8,.2,1) .3s both}
+html.intro .ask{animation:inUp .7s cubic-bezier(.2,.8,.2,1) 1.15s both}
+html.intro .chips .chip{animation:inUp .5s cubic-bezier(.2,.8,.2,1) both}
+html.intro .chips .chip:nth-child(1){animation-delay:1.3s} html.intro .chips .chip:nth-child(2){animation-delay:1.36s}
+html.intro .chips .chip:nth-child(3){animation-delay:1.42s} html.intro .chips .chip:nth-child(4){animation-delay:1.48s}
+html.intro .chips .chip:nth-child(5){animation-delay:1.54s}
+html.intro .hint{animation:inFade .6s ease 1.6s both}
+html.intro .tile{animation:inUp .6s cubic-bezier(.2,.8,.2,1) both}
+html.intro .tile:nth-child(1){animation-delay:1.45s} html.intro .tile:nth-child(2){animation-delay:1.51s}
+html.intro .tile:nth-child(3){animation-delay:1.57s} html.intro .tile:nth-child(4){animation-delay:1.63s}
+html.intro .tile:nth-child(5){animation-delay:1.69s} html.intro .tile:nth-child(6){animation-delay:1.75s}
+html.intro .panel{animation:inUp .8s cubic-bezier(.2,.8,.2,1) 1.85s both}
+html.intro .controls{animation:inFade .8s ease 1.2s both}
 </style>
 
 <div class="bg" aria-hidden="true">
   <div class="blob b1"></div><div class="blob b3"></div>
 </div>
 <canvas id="fx" aria-hidden="true"></canvas>
-<div class="watermark" aria-hidden="true">Gabbasov</div>
+<div class="watermark" aria-hidden="true">Gabbassov</div>
 
 <div class="controls">
   <div class="lang theme" role="group" aria-label="Тема" data-i18n-aria="th_group">
@@ -1013,6 +1037,12 @@ function fallback2D(cv){
   }
 
   var prev = performance.now(), fc = 0, slowFrames = 0, degraded = false, running = true;
+  var intro = document.documentElement.classList.contains('intro'), introT0 = performance.now(), introBurst = false, introY = 0.72, introFX = 0.5, introFY = 0.5, introR = 0.1;
+  (function(){
+    var h = document.querySelector('h1'), f = document.getElementById('face');
+    if(h){ var r = h.getBoundingClientRect(); introY = 1 - (r.top + r.height/2) / innerHeight; }
+    if(f){ var q = f.getBoundingClientRect(); introFX = (q.left + q.width/2) / innerWidth; introFY = 1 - (q.top + q.height*0.45) / innerHeight; introR = q.width*0.55 / innerWidth; }
+  })();
   // пауза, когда вкладка скрыта
   document.addEventListener('visibilitychange', function(){
     if(document.hidden){ running = false; }
@@ -1036,6 +1066,23 @@ function fallback2D(cv){
       var px = -0.05 + ph * 1.1, py = 0.62 + 0.06*Math.sin(t*0.9);
       var vx = 0.09 * CFG.FORCE * 0.016, vy = 0.054*Math.cos(t*0.9)*CFG.FORCE*0.016;
       splat(px, py, vx, vy, nextColor().map(function(v){ return v*0.6; }));
+    }
+    // анимация входа: радужная волна по заголовку, затем всплеск за аватаром
+    if(intro){
+      var it = (now - introT0) / 1000;
+      if(it < 1.1){
+        var k = it / 1.1, ex = 1 - Math.pow(1 - k, 3);
+        var hy = introY + 0.04*Math.sin(k*Math.PI*2);
+        splat(-0.05 + ex*1.1, hy, CFG.FORCE*0.02, 0.4*Math.cos(k*Math.PI*2)*CFG.FORCE*0.01, nextColor().map(function(v){ return v*2.2; }));
+      } else if(!introBurst && it > 0.85){
+        introBurst = true;
+        var ar = innerWidth / innerHeight;
+        for(var b=0;b<14;b++){
+          var a = b/14*Math.PI*2, rx = Math.cos(a)*introR, ry = Math.sin(a)*introR*ar;
+          splat(introFX + rx, introFY + ry, Math.cos(a)*520, Math.sin(a)*520, hsv((hue + b/14) % 1, 0.75, 0.1));
+        }
+      }
+      if(it > 2) intro = false;
     }
     var budget = 6;
     while(queue.length && budget--){ var q = queue.shift(); splat(q[0], q[1], q[2], q[3], nextColor()); }
@@ -1247,6 +1294,8 @@ function fallback2D(cv){
     setTimeout(function(){ set(null); busy = false; if(done) done(); }, 180);
   }
   function double(){ blink(function(){ setTimeout(blink, 90); }); }
+  if(document.documentElement.classList.contains('intro')) setTimeout(double, 1500);
+  setTimeout(function(){ document.documentElement.classList.remove('intro'); }, 3200);
   f.addEventListener('mouseenter', double);
   f.addEventListener('click', double);
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
