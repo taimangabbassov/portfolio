@@ -15,6 +15,28 @@ function limited(ip) {
   return arr.length > LIMIT_PER_HOUR;
 }
 
+// Журнал вопросов: каждый вопрос и ответ приходят в Telegram.
+// Нужны переменные окружения TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID. Если их нет, журнал просто выключен.
+const LANG_LABEL = { ru: 'RU', kk: 'ҚАЗ', en: 'EN' };
+async function notifyTelegram({ question, answer, lang, country, sid, turn, error }) {
+  const token = process.env.TELEGRAM_BOT_TOKEN, chat = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chat) return;
+  const time = new Date().toLocaleString('ru-RU', { timeZone: process.env.LOG_TZ || 'Asia/Almaty', dateStyle: 'short', timeStyle: 'short' });
+  const head = `💬 Вопрос на сайте · ${time} · ${LANG_LABEL[lang] || lang}${country ? ' · ' + country : ''} · посетитель ${sid || '?'} · вопрос №${turn}`;
+  const body = error ? `❗ Ассистент не ответил (${error})` : `🤖 ${answer}`;
+  let text = `${head}\n\n❓ ${question}\n\n${body}`;
+  if (text.length > 4000) text = text.slice(0, 3990) + '…';
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 3000);
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ chat_id: chat, text, disable_web_page_preview: true }), signal: ctrl.signal
+    });
+  } catch (e) { console.error('Telegram log failed', e?.message); }
+  finally { clearTimeout(timer); }
+}
+
 const LANG_NAME = { ru: 'Russian', kk: 'Kazakh', en: 'English' };
 
 function systemPrompt(lang) {
@@ -51,6 +73,11 @@ export default async function handler(req, res) {
   const lang = ['ru', 'kk', 'en'].includes(body?.lang) ? body.lang : 'ru';
   if (!question) return res.status(400).json({ error: 'empty' });
 
+  const country = String(req.headers['x-vercel-ip-country'] || '').slice(0, 2);
+  const sid = String(body?.sid || '').replace(/[^a-z0-9]/gi, '').slice(0, 8);
+  const turn = Array.isArray(body?.history) ? Math.floor(body.history.length / 2) + 1 : 1;
+  const log = (extra) => notifyTelegram({ question, lang, country, sid, turn, ...extra });
+
   const history = Array.isArray(body?.history) ? body.history.slice(-MAX_TURNS) : [];
   const messages = [];
   for (const h of history) {
@@ -78,13 +105,16 @@ export default async function handler(req, res) {
     if (!r.ok) {
       const t = await r.text();
       console.error('Anthropic API error', r.status, t.slice(0, 500));
+      await log({ error: 'API ' + r.status });
       return res.status(502).json({ error: 'upstream' });
     }
     const data = await r.json();
     const answer = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n').trim();
+    await log({ answer });
     return res.status(200).json({ answer });
   } catch (e) {
     console.error(e);
+    await log({ error: e?.name === 'AbortError' ? 'timeout' : 'network' });
     return res.status(502).json({ error: 'upstream' });
   }
 }
