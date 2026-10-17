@@ -267,7 +267,6 @@ footer{position:relative; z-index:1; text-align:center; color:var(--muted); font
 html.is-empty footer{display:none}
 main{padding-top:var(--top-pad, 0px)}
 html.is-empty main{min-height:calc(100svh - 56px)}
-@media (prefers-reduced-motion:no-preference){ .panel:not([hidden]){animation:panelIn .35s ease-out} @keyframes panelIn{from{opacity:0} to{opacity:1}} }
 .panel{scroll-margin-top:72px}
 
 @media (max-width:760px){
@@ -1403,9 +1402,42 @@ function fallback2D(cv){
   }
 
   var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // плавное раскрытие, переключение и сворачивание раздела по высоте
+  var panelAnim = null;
+  function panelH(){ return panel.hidden ? 0 : panel.getBoundingClientRect().height; }
+  function boxFrame(h, op, cs){
+    var f = {height: h + 'px', opacity: op};
+    var z = h === 0;
+    f.paddingTop = z ? '0px' : cs.paddingTop; f.paddingBottom = z ? '0px' : cs.paddingBottom;
+    f.marginTop = z ? '0px' : cs.marginTop;
+    f.borderTopWidth = z ? '0px' : cs.borderTopWidth; f.borderBottomWidth = z ? '0px' : cs.borderBottomWidth;
+    return f;
+  }
+  function stopPanelAnim(){ if(panelAnim){ panelAnim.cancel(); panelAnim = null; } panel.style.overflow = ''; panel.style.boxSizing = ''; }
+  function animatePanel(h0, h1, op0, done){
+    stopPanelAnim();
+    if(reduceMotion || !panel.animate){ if(done) done(); return; }
+    var cs = getComputedStyle(panel);
+    var box = {paddingTop:cs.paddingTop, paddingBottom:cs.paddingBottom, marginTop:cs.marginTop, borderTopWidth:cs.borderTopWidth, borderBottomWidth:cs.borderBottomWidth};
+    panel.style.overflow = 'hidden'; panel.style.boxSizing = 'border-box';
+    var a = panel.animate([boxFrame(h0, op0, box), boxFrame(h1, h1 === 0 ? 0 : 1, box)],
+      {duration: Math.min(520, 260 + Math.abs(h1 - h0) * 0.12), easing: 'cubic-bezier(.25,.8,.25,1)'});
+    panelAnim = a;
+    a.onfinish = function(){ if(panelAnim !== a) return; panelAnim = null; panel.style.overflow = ''; panel.style.boxSizing = ''; if(done) done(); };
+  }
   tabs.forEach(function(t){ t.addEventListener('click', function(){
-    if(current === t.dataset.tab){ show(null); return; }
-    show(t.dataset.tab); track('tab_open', {tab:t.dataset.tab, lang:lang});
+    var name = t.dataset.tab;
+    var h0 = panelH(); stopPanelAnim();
+    if(current === name){
+      // закрыть: сворачиваем, потом прячем
+      current = null;
+      tabs.forEach(function(x){ x.setAttribute('aria-selected', 'false'); });
+      animatePanel(h0, 0, 1, function(){ if(current === null) show(null); });
+      return;
+    }
+    var wasOpen = h0 > 0;
+    show(name); track('tab_open', {tab:name, lang:lang});
+    animatePanel(h0, panelH(), wasOpen ? 0.55 : 0);
   }); });
   langBtns.forEach(function(b){ b.addEventListener('click', function(){ applyLang(b.dataset.lang); track('lang_switch', {lang:b.dataset.lang}); }); });
   document.addEventListener('click', function(e){
