@@ -258,6 +258,11 @@ h1{font-size:clamp(42px,9vw,92px); font-weight:800; line-height:1; letter-spacin
 @media (max-width:640px){ .cgrid{grid-template-columns:1fr} }
 
 .facts.facts3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.panel h3.mh{font-size:16px; font-weight:700; margin:22px 0 8px; letter-spacing:-.005em}
+.panel .me-lead{font-size:17px; line-height:1.55}
+.panel .list.edu{color:var(--muted); font-size:14px}
+.panel .me-lang{margin-top:0; font-size:14px; color:var(--muted)}
+.panel .me-lang b{color:var(--ink); font-weight:600}
 @media (max-width:760px){ .facts.facts3{grid-template-columns:1fr} }
 
 footer{position:relative; z-index:1; text-align:center; color:var(--muted); font-size:13px; margin-top:36px}
@@ -419,16 +424,30 @@ html.intro .controls{animation:inFade .8s ease 1.2s both}
 
 <template id="tpl-me-ru">
   <h2>Обо мне</h2>
-  <p class="sub">Senior системный и бизнес-аналитик · 5,7 лет · Астана</p>
-  <p>Я довожу сложные системы от идеи до работающего продукта, которым пользуются тысячи людей. Собираю требования у бизнеса и госзаказчика, проектирую процессы и интеграции, пишу документацию и постановки, принимаю результат и обучаю пользователей.</p>
-  <p>За 5,7 лет прошёл три отрасли: медицину, горнодобычу и государственный сектор, и каждый раз брал задачи крупнее. Начинал с одной клиники. Потом вместе с командой вырастил DMMS из стартапа в продукт для 30+ шахт, рудников и фабрик. Сейчас работаю над госсистемой, которой пользуются 20–30 тысяч человек по всему Казахстану. Руководил командой из 10–12 человек, но больше всего люблю саму аналитику.</p>
-  <p>Последний год мой главный фокус: ИИ в работе аналитика. Свои агенты с базой знаний и памятью, отдельный агент для ревью требований, работа с кодом системы без помощи разработчика. Многие задачи так закрываются в 2 раза быстрее. Отдельно увлекаюсь разработкой с помощью ИИ: в своих проектах сам собираю и проверяю решения, например этот сайт с ИИ-ассистентом. С удовольствием применю этот навык и в рабочих задачах.</p>
+  <p class="sub">Senior системный и бизнес-аналитик · Астана</p>
+  <p class="me-lead">Мне нравится разбираться в сложных задачах, находить связи между разными частями системы и превращать требования в решения, которые работают и которыми удобно пользоваться.</p>
+  <h3 class="mh">Как я работаю</h3>
+  <p>Сначала разбираюсь в задаче и её контексте, затем ищу решение. Продумываю, как изменения повлияют на остальные части системы, учитываю пользовательский опыт и стараюсь заранее находить сценарии, которые легко упустить.</p>
+  <h3 class="mh">Что для меня важно в команде</h3>
+  <p>Ценю командную работу, открытое обсуждение решений и готовность помогать друг другу. Мне важно, чтобы мы не просто выполняли отдельные задачи, а вместе двигались к общему результату.</p>
+  <h3 class="mh">Что хочу делать дальше</h3>
+  <p>Хочу создавать и развивать сложные продукты с нуля: с продуманной архитектурой, интеграциями и ИИ-функциями, которые решают реальные задачи пользователей, упрощают повседневную жизнь и освобождают время для важного.</p>
+  <h3 class="mh">Вне работы</h3>
+  <p>Бегаю и участвую в марафонах: пробежал марафоны в Алматы и Астане. Люблю горы, поднимался на Эльбрус.</p>
   <div class="facts facts3">
-    <div class="fact"><b>10–30 тыс.</b><span>пользователей Единого портала строительства по всему Казахстану</span></div>
-    <div class="fact"><b>10–15 тыс.</b><span>пользователей DMMS на 30+ шахтах, рудниках и фабриках, рост за 3 года</span></div>
-    <div class="fact"><b>×2</b><span>быстрее закрываю задачи с ИИ</span></div>
+    <div class="fact"><b>42 км</b><span>марафоны в Алматы и Астане</span></div>
+    <div class="fact"><b>5 642 м</b><span>Эльбрус</span></div>
+    <div class="fact"><b>ICP</b><span>ICAgile Certified Professional</span></div>
   </div>
-  <p style="margin-top:18px; color:var(--muted); font-size:14px">Образование: информационная безопасность. Открыт к предложениям в Казахстане и за рубежом, готов к релокации.</p>
+  <h3 class="mh">Образование и обучение</h3>
+  <ul class="list edu">
+    <li>Поволжский государственный университет телекоммуникаций и информатики, Самара, 2021. Специальность: «Информационная безопасность телекоммуникационных систем».</li>
+    <li>ICAgile Certified Professional (ICP), 2023.</li>
+    <li>SQL for Data Analytics, DataBoom.kz, 2022.</li>
+    <li>Базовый курс по информационной безопасности, Udemy, 2022.</li>
+  </ul>
+  <h3 class="mh">Языки</h3>
+  <p class="me-lang">Казахский: родной · Русский: C2 · Английский: B1</p>
 </template>
 
 <template id="tpl-projects-ru">
@@ -580,16 +599,30 @@ html.intro .controls{animation:inFade .8s ease 1.2s both}
 
 <template id="tpl-me-kk">
   <h2>Мен туралы</h2>
-  <p class="sub">Senior жүйелік және бизнес-аналитик · 5,7 жыл · Астана</p>
-  <p>Күрделі жүйелерді идеядан мыңдаған адам қолданатын жұмыс істейтін өнімге дейін жеткіземін. Бизнес пен мемлекеттік тапсырыс берушіден талаптарды жинаймын, процестер мен интеграцияларды жобалаймын, құжаттама мен тапсырмаларды жазамын, нәтижені қабылдап, пайдаланушыларды оқытамын.</p>
-  <p>5,7 жыл ішінде үш саладан өттім: медицина, тау-кен өндірісі және мемлекеттік сектор, әр жолы ауқымдырақ міндеттер алдым. Бір емханадан бастадым. Кейін командамен бірге DMMS-ті стартаптан 30+ шахта, кеніш және фабрикаға арналған өнімге дейін өсірдік. Қазір бүкіл Қазақстан бойынша 20–30 мың адам қолданатын мемлекеттік жүйемен жұмыс істеймін. 10–12 адамнан тұратын команданы басқардым, бірақ ең жақсы көретінім: аналитиканың өзі.</p>
-  <p>Соңғы жылы басты бағытым: аналитик жұмысындағы ЖИ. Білім базасы мен жады бар өз агенттерім, талаптарды тексеретін жеке агент, әзірлеушінің көмегінсіз жүйе кодымен жұмыс. Осылайша көп тапсырма 2 есе жылдам жабылады. Сондай-ақ ЖИ көмегімен әзірлеуге қызығамын: өз жобаларымда шешімдерді өзім жасап, тексеремін, мысалы, ЖИ-көмекшісі бар осы сайт. Бұл дағдыны жұмыс міндеттерінде де қуана қолданамын.</p>
+  <p class="sub">Senior жүйелік және бизнес-аналитик · Астана</p>
+  <p class="me-lead">Күрделі тапсырмаларды талдағанды, жүйенің әр бөлігі арасындағы байланыстарды табуды және талаптарды жұмыс істейтін, қолдануға ыңғайлы шешімдерге айналдыруды ұнатамын.</p>
+  <h3 class="mh">Қалай жұмыс істеймін</h3>
+  <p>Алдымен тапсырманы және оның контекстін түсінемін, содан кейін шешім іздеймін. Өзгерістер жүйенің басқа бөліктеріне қалай әсер ететінін ойластырамын, пайдаланушы тәжірибесін ескеремін және оңай назардан тыс қалатын сценарийлерді алдын ала табуға тырысамын.</p>
+  <h3 class="mh">Командада мен үшін не маңызды</h3>
+  <p>Командалық жұмысты, шешімдерді ашық талқылауды және бір-біріне көмектесуге дайын болуды бағалаймын. Жеке тапсырмаларды орындап қана қоймай, ортақ нәтижеге бірге қозғалғанымыз маңызды.</p>
+  <h3 class="mh">Әрі қарай не істегім келеді</h3>
+  <p>Күрделі өнімдерді нөлден жасап, дамытқым келеді: ойластырылған архитектурасы, интеграциялары және ЖИ функциялары бар, пайдаланушылардың нақты міндеттерін шешетін, күнделікті өмірді жеңілдететін және маңызды істерге уақыт босататын өнімдерді.</p>
+  <h3 class="mh">Жұмыстан тыс</h3>
+  <p>Жүгіремін және марафондарға қатысамын: Алматы мен Астанада марафон жүгірдім. Тауды жақсы көремін, Эльбрусқа шықтым.</p>
   <div class="facts facts3">
-    <div class="fact"><b>10–30 мың</b><span>бүкіл Қазақстан бойынша Құрылыстың бірыңғай порталының пайдаланушысы</span></div>
-    <div class="fact"><b>10–15 мың</b><span>30+ шахта, кеніш және фабрикадағы DMMS пайдаланушысы, 3 жылдағы өсім</span></div>
-    <div class="fact"><b>×2</b><span>ЖИ көмегімен тапсырмаларды жылдам жабамын</span></div>
+    <div class="fact"><b>42 км</b><span>Алматы мен Астанадағы марафондар</span></div>
+    <div class="fact"><b>5 642 м</b><span>Эльбрус</span></div>
+    <div class="fact"><b>ICP</b><span>ICAgile Certified Professional</span></div>
   </div>
-  <p style="margin-top:18px; color:var(--muted); font-size:14px">Білімі: ақпараттық қауіпсіздік. Қазақстандағы және шетелдегі ұсыныстарға ашықпын, көшуге дайынмын.</p>
+  <h3 class="mh">Білімі және оқу</h3>
+  <ul class="list edu">
+    <li>Еділ бойы мемлекеттік телекоммуникация және информатика университеті, Самара, 2021. Мамандығы: «Телекоммуникациялық жүйелердің ақпараттық қауіпсіздігі».</li>
+    <li>ICAgile Certified Professional (ICP), 2023.</li>
+    <li>SQL for Data Analytics, DataBoom.kz, 2022.</li>
+    <li>Ақпараттық қауіпсіздік бойынша базалық курс, Udemy, 2022.</li>
+  </ul>
+  <h3 class="mh">Тілдер</h3>
+  <p class="me-lang">Қазақ тілі: ана тілі · Орыс тілі: C2 · Ағылшын тілі: B1</p>
 </template>
 
 <template id="tpl-projects-kk">
@@ -741,16 +774,30 @@ html.intro .controls{animation:inFade .8s ease 1.2s both}
 
 <template id="tpl-me-en">
   <h2>About me</h2>
-  <p class="sub">Senior Systems & Business Analyst · 5.7 years · Astana</p>
-  <p>I take complex systems from an idea to a working product used by thousands of people. I gather requirements from business and government clients, design processes and integrations, write documentation and specs, accept the result and train users.</p>
-  <p>Over 5.7 years I have worked in three industries: healthcare, mining and the public sector, each time taking on bigger challenges. I started with a single clinic. Then, together with the team, I helped grow DMMS from a startup into a product for 30+ mines and processing plants. Now I work on a government system used by 20–30 thousand people across Kazakhstan. I have led a team of 10–12 people, but analysis itself is what I love most.</p>
-  <p>For the past year my main focus has been AI in an analyst’s work: my own agents with a knowledge base and memory, a dedicated agent for reviewing requirements, and working with system code without a developer. This way many tasks get closed 2× faster. I'm also into building software with AI: in my own projects I put together and test solutions myself, like this site with its AI assistant. I'd be glad to bring this skill to work as well.</p>
+  <p class="sub">Senior Systems & Business Analyst · Astana</p>
+  <p class="me-lead">I enjoy digging into complex problems, finding the links between different parts of a system and turning requirements into solutions that work and are easy to use.</p>
+  <h3 class="mh">How I work</h3>
+  <p>First I get to grips with the task and its context, then I look for a solution. I think through how changes will affect the rest of the system, take the user experience into account and try to spot the easy-to-miss scenarios early.</p>
+  <h3 class="mh">What matters to me in a team</h3>
+  <p>I value teamwork, open discussion of solutions and a willingness to help each other. It matters to me that we don’t just complete separate tasks but move toward a shared result together.</p>
+  <h3 class="mh">What I want to do next</h3>
+  <p>I want to build and grow complex products from scratch: with well-thought-out architecture, integrations and AI features that solve real user problems, make everyday life simpler and free up time for what matters.</p>
+  <h3 class="mh">Outside work</h3>
+  <p>I run and take part in marathons: I’ve run marathons in Almaty and Astana. I love the mountains and have climbed Elbrus.</p>
   <div class="facts facts3">
-    <div class="fact"><b>10–30K</b><span>users of the Unified Construction Portal across Kazakhstan</span></div>
-    <div class="fact"><b>10–15K</b><span>DMMS users at 30+ mines and processing plants, grown in 3 years</span></div>
-    <div class="fact"><b>×2</b><span>faster task delivery with AI</span></div>
+    <div class="fact"><b>42 km</b><span>marathons in Almaty and Astana</span></div>
+    <div class="fact"><b>5,642 m</b><span>Mount Elbrus</span></div>
+    <div class="fact"><b>ICP</b><span>ICAgile Certified Professional</span></div>
   </div>
-  <p style="margin-top:18px; color:var(--muted); font-size:14px">Degree in information security. Open to offers in Kazakhstan and abroad, ready to relocate.</p>
+  <h3 class="mh">Education and training</h3>
+  <ul class="list edu">
+    <li>Volga State University of Telecommunications and Informatics, Samara, 2021. Specialty: Information Security of Telecommunication Systems.</li>
+    <li>ICAgile Certified Professional (ICP), 2023.</li>
+    <li>SQL for Data Analytics, DataBoom.kz, 2022.</li>
+    <li>Information Security Fundamentals, Udemy, 2022.</li>
+  </ul>
+  <h3 class="mh">Languages</h3>
+  <p class="me-lang">Kazakh: native · Russian: C2 · English: B1</p>
 </template>
 
 <template id="tpl-projects-en">
