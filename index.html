@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<script>/* тема до первой отрисовки, чтобы не мигал светлый фон */(function(){try{var m=localStorage.getItem("theme");if(m==="dark"||m==="light"){document.documentElement.setAttribute("data-theme",m);window.__themeEarly=1;}}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Тайман Габбасов, Senior системный и бизнес-аналитик. Опыт, проекты, навыки и ИИ-ассистент, который ответит на вопросы обо мне.">
 <meta property="og:title" content="Тайман Габбасов, системный аналитик">
@@ -56,6 +57,7 @@
 }
 *{box-sizing:border-box}
 html,body{min-height:100%}
+html{background:var(--bg)}
 body{
   margin:0; background:var(--bg); color:var(--ink); font-family:var(--f); font-size:16px; line-height:1.55;
   padding-left:max(16px, env(safe-area-inset-left, 0px));
@@ -1571,7 +1573,7 @@ function fallback2D(cv){
 
 /* переключатель темы: светлая / как в системе / тёмная */
 (function(){
-  var root = document.documentElement, host = root.getAttribute('data-theme');
+  var root = document.documentElement, host = window.__themeEarly ? null : root.getAttribute('data-theme');
   var btns = document.querySelectorAll('[data-theme-set]');
   function apply(m){
     if(m === 'auto'){ if(host) root.setAttribute('data-theme', host); else root.removeAttribute('data-theme'); }
