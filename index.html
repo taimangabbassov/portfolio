@@ -1071,12 +1071,24 @@ function fallback2D(cv){
     var dpr = 1;
     cv.width = Math.floor(innerWidth * dpr); cv.height = Math.floor(innerHeight * dpr);
   }
-  function initFBOs(){
+  function copyTex(src, dst){
+    gl.disable(gl.BLEND); prog.clear.use();
+    gl.uniform1i(prog.clear.u.uTexture, src.attach(0)); gl.uniform1f(prog.clear.u.value, 1); blit(dst);
+  }
+  function freeFbo(f){ if(f){ gl.deleteTexture(f.tex); gl.deleteFramebuffer(f.fbo); } }
+  // keep = true: переносим уже нарисованное в новые буферы, чтобы след не пропадал рывком
+  function initFBOs(keep){
     var s = res(CFG.SIM), d = res(CFG.DYE);
+    var od = dye, ov = vel, odiv = div, ocurl = curlT, opres = pres;
     dye = dbl(d.w, d.h); vel = dbl(s.w, s.h); div = fbo(s.w, s.h); curlT = fbo(s.w, s.h); pres = dbl(s.w, s.h);
+    if(keep && od && ov){
+      copyTex(od.read, dye.write); dye.swap();
+      copyTex(ov.read, vel.write); vel.swap();
+    }
+    if(od){ freeFbo(od.read); freeFbo(od.write); freeFbo(ov.read); freeFbo(ov.write); freeFbo(odiv); freeFbo(ocurl); freeFbo(opres.read); freeFbo(opres.write); }
   }
   try { sizeCanvas(); initFBOs(); } catch(e){ swapToFallback(); return; }
-  var rt; addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(function(){ try { sizeCanvas(); initFBOs(); } catch(e){} }, 150); });
+  var rt; addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(function(){ try { sizeCanvas(); initFBOs(true); } catch(e){} }, 150); });
 
   var hue = Math.random();
   function hsv(h, sat, v){ var i=Math.floor(h*6), f=h*6-i, p=v*(1-sat), q=v*(1-f*sat), t=v*(1-(1-f)*sat), r,g,b;
@@ -1159,7 +1171,7 @@ function fallback2D(cv){
   function degrade(){
     // слабое устройство: снижаем качество симуляции
     degraded = true; CFG.DYE = 384; CFG.SIM = 96; CFG.PRESSURE_IT = 8;
-    try { initFBOs(); } catch(e){}
+    try { initFBOs(true); } catch(e){}
   }
   function frame(now){
     if(!running) return;
