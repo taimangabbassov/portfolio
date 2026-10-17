@@ -110,6 +110,24 @@ h1{font-size:clamp(42px,9vw,92px); font-weight:800; line-height:1; letter-spacin
 .ask input::placeholder{color:var(--muted)}
 .send{width:46px; height:46px; flex:none; border-radius:50%; border:0; background:var(--accent); color:#fff; cursor:pointer; display:grid; place-items:center}
 .send svg{width:20px; height:20px}
+/* кнопка отправки: крупнее зона касания, отклик на нажатие, состояние ожидания */
+.send{position:relative; touch-action:manipulation; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none}
+.send::before{content:""; position:absolute; inset:-10px; border-radius:50%}
+.send:focus-visible{outline:3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset:2px}
+.send[aria-busy="true"]{cursor:progress}
+.send[aria-busy="true"] svg{opacity:0}
+.send[aria-busy="true"]::after{content:""; position:absolute; width:18px; height:18px; border-radius:50%; border:2.5px solid rgba(255,255,255,.35); border-top-color:#fff; animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ask form{transition:border-color .15s ease, box-shadow .15s ease}
+.ask form:focus-within{border-color:color-mix(in srgb, var(--accent) 55%, var(--line)); box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent), 0 8px 30px -18px rgba(30,40,80,.3)}
+.ask input{touch-action:manipulation}
+@media (prefers-reduced-motion:no-preference){
+  .send{transition:transform .12s ease, filter .15s ease}
+  .send:hover{filter:brightness(1.08); transform:scale(1.04)}
+  .send:active{transform:scale(.9)}
+  .ask form.nudge{animation:nudge .4s ease}
+  @keyframes nudge{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+}
 .chips{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:12px}
 .chip{font:inherit; font-size:13px; color:var(--muted); background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:6px 12px; cursor:pointer}
 .chip:hover{color:var(--ink); border-color:var(--muted)}
@@ -1304,11 +1322,19 @@ function fallback2D(cv){
   var history = [], asking = false;
   var sid = Math.random().toString(36).slice(2, 7);
   var disc = document.getElementById('adisc');
-  document.getElementById('askForm').addEventListener('submit', function(e){
+  var askForm = document.getElementById('askForm'), sendBtn = askForm.querySelector('.send'), qInput = document.getElementById('q');
+  var coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+  // не даём кнопке забрать фокус у поля: клавиатура не закрывается до нажатия и страница не прыгает
+  sendBtn.addEventListener('pointerdown', function(e){ if(document.activeElement === qInput) e.preventDefault(); });
+  function nudge(){ askForm.classList.remove('nudge'); void askForm.offsetWidth; askForm.classList.add('nudge'); setTimeout(function(){ askForm.classList.remove('nudge'); }, 450); }
+  askForm.addEventListener('submit', function(e){
     e.preventDefault();
-    var input = document.getElementById('q');
-    var v = input.value.trim(); if(!v || asking) return;
-    asking = true; box.classList.add('loading'); track('ai_question', {lang:lang});
+    var input = qInput;
+    var v = input.value.trim();
+    if(!v){ nudge(); input.focus(); return; }
+    if(asking) return;
+    if(coarse) input.blur();
+    asking = true; box.classList.add('loading'); sendBtn.setAttribute('aria-busy', 'true'); track('ai_question', {lang:lang});
     answer(v, UI[lang].thinking); disc.hidden = true;
     var ctrl = ('AbortController' in window) ? new AbortController() : null;
     var timer = setTimeout(function(){ if(ctrl) ctrl.abort(); }, 25000);
@@ -1322,7 +1348,7 @@ function fallback2D(cv){
         history = history.slice(-6); input.value = '';
       })
       .catch(function(){ answer(v, localAnswer(v)); })
-      .then(function(){ clearTimeout(timer); asking = false; box.classList.remove('loading'); });
+      .then(function(){ clearTimeout(timer); asking = false; box.classList.remove('loading'); sendBtn.removeAttribute('aria-busy'); });
   });
   applyLang(lang);
 })();
