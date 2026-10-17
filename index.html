@@ -309,6 +309,14 @@ html.intro .tile:nth-child(3){animation-delay:1.57s} html.intro .tile:nth-child(
 html.intro .tile:nth-child(5){animation-delay:1.69s} html.intro .tile:nth-child(6){animation-delay:1.75s}
 html.intro .controls{animation:inFade .8s ease 1.2s backwards}
 
+/* при открытом разделе фоновая надпись плавно уходит, карточки как матовое стекло */
+.watermark{transition:opacity .6s ease}
+html:not(.is-empty) .watermark{opacity:0}
+.panel,.answer{background:color-mix(in srgb, var(--surface) 80%, transparent);
+  -webkit-backdrop-filter:blur(18px) saturate(1.15); backdrop-filter:blur(18px) saturate(1.15);
+  box-shadow:0 20px 50px -30px rgba(30,40,80,.35)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){ .panel,.answer{background:var(--surface)} }
+
 /* первый экран в стиле примера: системный шрифт, компактные размеры */
 :root{--f:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
 .hero{gap:4px}
