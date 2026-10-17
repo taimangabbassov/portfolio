@@ -24,6 +24,16 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="theme-color" content="#fbfaf8">
 <script>document.documentElement.classList.add('is-empty');(function(){try{if(!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))document.documentElement.classList.add('intro')}catch(e){}})();</script>
+<script>
+/* Яндекс Метрика: впишите номер счётчика вместо 0 (metrika.yandex.ru → настройки счётчика) */
+window.YM_ID = 0;
+if(window.YM_ID){
+  (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();
+  for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}
+  k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");
+  ym(window.YM_ID, "init", {clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true});
+}
+</script>
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script>
 <script defer src="/_vercel/insights/script.js"></script>
 <style>html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
@@ -1382,11 +1392,11 @@ function fallback2D(cv){
     return {height: h + 'px', opacity: op, paddingTop: z ? '0px' : cs.pt, paddingBottom: z ? '0px' : cs.pb,
       marginTop: z ? '0px' : cs.mt, borderTopWidth: z ? '0px' : cs.bt, borderBottomWidth: z ? '0px' : cs.bb};
   }
-  function animateBox(h0, h1, op0, done){
+  function animateBox(h0, h1, op0, done, dur){
     if(boxRM || !box.animate || Math.abs(h1 - h0) < 1){ if(done) done(); return; }
     var c = getComputedStyle(box), cs = {pt:c.paddingTop, pb:c.paddingBottom, mt:c.marginTop, bt:c.borderTopWidth, bb:c.borderBottomWidth};
     box.style.overflow = 'hidden';
-    var a = box.animate([boxFrame(h0, op0, cs), boxFrame(h1, h1 === 0 ? 0 : 1, cs)], {duration: Math.min(650, 360 + Math.abs(h1 - h0) * 0.6), easing: h1 < h0 ? 'cubic-bezier(.45,0,.25,1)' : 'cubic-bezier(.22,.7,.2,1)'});
+    var a = box.animate([boxFrame(h0, op0, cs), boxFrame(h1, h1 === 0 ? 0 : 1, cs)], {duration: dur || Math.min(650, 360 + Math.abs(h1 - h0) * 0.6), easing: h1 < h0 ? 'cubic-bezier(.45,0,.25,1)' : 'cubic-bezier(.22,.7,.2,1)'});
     boxAnim = a;
     a.onfinish = function(){ if(boxAnim !== a) return; boxAnim = null; box.style.overflow = ''; if(done) done(); };
   }
@@ -1397,6 +1407,13 @@ function fallback2D(cv){
     animateBox(h0, boxH(), h0 ? 1 : 0);
   }
   function setChip(el){ chips.querySelectorAll('.chip').forEach(function(c){ c.setAttribute('aria-pressed', c === el ? 'true' : 'false'); }); }
+  // печать ответа по мере поступления: высота окошка подрастает короткими плавными шагами
+  function streamText(q, text){
+    var h0 = boxH(); stopBoxAnim();
+    box.classList.remove('loading'); aq.textContent = q; at.textContent = text; box.hidden = false;
+    animateBox(h0, boxH(), 1, null, 180);
+  }
+  function cleanDash(t){ return t.replace(/\s+\u2014\s+/g, ', ').replace(/\u2014/g, ','); }
   function closeAnswer(){
     askSeq++; setChip(null);
     var h0 = boxH(); stopBoxAnim();
@@ -1531,7 +1548,7 @@ function fallback2D(cv){
     if(asking) return;
     if(coarse) input.blur();
     asking = true; box.classList.add('loading'); sendBtn.setAttribute('aria-busy', 'true'); track('ai_question', {lang:lang});
-    var mySeq = ++askSeq; setChip(null);
+    var mySeq = ++askSeq, streamed = ''; setChip(null);
     answer(v, UI[lang].thinking, false);
     var ctrl = ('AbortController' in window) ? new AbortController() : null;
     var timer = setTimeout(function(){ if(ctrl) ctrl.abort(); }, 25000);
@@ -1539,7 +1556,19 @@ function fallback2D(cv){
       body: JSON.stringify({question:v, lang:lang, history:history, sid:sid}), signal: ctrl ? ctrl.signal : undefined})
       .then(function(r){
         if(r.status === 429) return r.json().catch(function(){ return {}; }).then(function(j){ return {limited: j && j.error === 'daily_limit' ? 'limit_day' : 'limit_hour'}; });
-        if(!r.ok) throw new Error(r.status); return r.json();
+        if(!r.ok) throw new Error(r.status);
+        var ct = r.headers.get('content-type') || '';
+        if(ct.indexOf('application/json') !== -1) return r.json();
+        if(!r.body || !r.body.getReader || !window.TextDecoder) return r.text().then(function(t){ return {answer: cleanDash(t).trim()}; });
+        var reader = r.body.getReader(), dec = new TextDecoder();
+        return (function pump(){
+          return reader.read().then(function(x){
+            if(x.done){ streamed += dec.decode(); return {answer: cleanDash(streamed).trim()}; }
+            streamed += dec.decode(x.value, {stream:true});
+            if(mySeq === askSeq && streamed.trim()) streamText(v, cleanDash(streamed));
+            return pump();
+          });
+        })();
       })
       .then(function(d){
         if(d && d.limited){ if(mySeq === askSeq) answer(v, UI[lang][d.limited], false); track('ai_limit', {type:d.limited}); return; }
@@ -1548,7 +1577,7 @@ function fallback2D(cv){
         history.push({role:'user', content:v}, {role:'assistant', content:d.answer});
         history = history.slice(-6); input.value = '';
       })
-      .catch(function(){ if(mySeq === askSeq) answer(v, localAnswer(v), false); })
+      .catch(function(){ if(mySeq !== askSeq) return; if(streamed.trim()) answer(v, cleanDash(streamed).trim(), true); else answer(v, localAnswer(v), false); })
       .then(function(){ clearTimeout(timer); asking = false; box.classList.remove('loading'); sendBtn.removeAttribute('aria-busy'); });
   });
   applyLang(lang);
