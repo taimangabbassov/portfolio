@@ -1250,19 +1250,19 @@ function fallback2D(cv){
 
 (function(){
   var UI = {
-    ru:{close:'Закрыть', share:'Поделиться', copied:'Ссылка скопирована', share_text:'Тайман Габбасов, Senior системный аналитик', hello:'Привет, я Тайман', title:'Системный аналитик', qlabel:'Вопрос', ph:'Спросите меня о чём угодно…', send:'Спросить',
+    ru:{limit_hour:'Вы задали много вопросов подряд. Давайте продолжим лично: мои контакты в разделе «Контакты».', limit_day:'Сегодня ассистент уже ответил на очень много вопросов и отдыхает до завтра. Напишите мне напрямую, контакты в разделе «Контакты».', close:'Закрыть', share:'Поделиться', copied:'Ссылка скопирована', share_text:'Тайман Габбасов, Senior системный аналитик', hello:'Привет, я Тайман', title:'Системный аналитик', qlabel:'Вопрос', ph:'Спросите меня о чём угодно…', send:'Спросить',
         hint:'Спросите что угодно о моём опыте, ответит ИИ-ассистент.', thinking:'Думаю…', disc:'Ответ сгенерирован ИИ по моему резюме', nav:'Разделы', avatar:'Аватар', initials:'ТГ', th_group:'Тема', th_light:'Светлая тема', th_auto:'Как в системе', th_dark:'Тёмная тема',
         t_path:'Мой путь', t_me:'Обо мне', t_projects:'Проекты', t_skills:'Навыки', t_ai:'ИИ', t_contact:'Контакты',
         footer:'Тайман Габбасов · Senior системный аналитик · Астана · 2026',
         personal:'Это с удовольствием обсужу при личной беседе. Мои контакты в разделе «Контакты».', greet:'Привет! Всё отлично, спасибо. Я ИИ-ассистент Таймана: могу рассказать о моём опыте, проектах и навыках. Например, как я запускал госсистему по всему Казахстану. С чего начнём?', thanks:'Спасибо, что заглянули! Если захотите обсудить вакансию, мои контакты в разделе «Контакты».', money:'Зарплатные ожидания и условия обсуждаю лично. Напишите мне, контакты в разделе «Контакты».',
         fallback:'На этот вопрос лучше отвечу лично. Напишите мне, контакты в разделе «Контакты».'},
-    kk:{close:'Жабу', share:'Бөлісу', copied:'Сілтеме көшірілді', share_text:'Тайман Габбасов, Senior жүйелік аналитик', hello:'Сәлем, мен Тайманмын', title:'Жүйелік аналитик', qlabel:'Сұрақ', ph:'Маған кез келген сұрақ қойыңыз…', send:'Сұрау',
+    kk:{limit_hour:'Сіз қатарынан көп сұрақ қойдыңыз. Жеке сөйлесейік: байланыс деректерім «Байланыс» бөлімінде.', limit_day:'Бүгін көмекші өте көп сұраққа жауап берді және ертеңге дейін демалады. Маған тікелей жазыңыз, байланыс деректері «Байланыс» бөлімінде.', close:'Жабу', share:'Бөлісу', copied:'Сілтеме көшірілді', share_text:'Тайман Габбасов, Senior жүйелік аналитик', hello:'Сәлем, мен Тайманмын', title:'Жүйелік аналитик', qlabel:'Сұрақ', ph:'Маған кез келген сұрақ қойыңыз…', send:'Сұрау',
         hint:'Тәжірибем туралы кез келген сұрақ қойыңыз, ЖИ-көмекші жауап береді.', thinking:'Ойланып жатырмын…', disc:'Жауапты ЖИ менің түйіндемем бойынша жасады', nav:'Бөлімдер', avatar:'Аватар', initials:'ТГ', th_group:'Тақырып', th_light:'Ашық тақырып', th_auto:'Жүйедегідей', th_dark:'Қараңғы тақырып',
         t_path:'Менің жолым', t_me:'Мен туралы', t_projects:'Жобалар', t_skills:'Дағдылар', t_ai:'ЖИ', t_contact:'Байланыс',
         footer:'Тайман Габбасов · Senior жүйелік аналитик · Астана · 2026',
         personal:'Бұны жеке әңгімеде қуана талқылаймын. Байланыс деректерім «Байланыс» бөлімінде.', greet:'Сәлем! Бәрі жақсы, рахмет. Мен Тайманның ЖИ-көмекшісімін: тәжірибем, жобаларым мен дағдыларым туралы айтып бере аламын. Мысалы, мемлекеттік жүйені бүкіл Қазақстан бойынша қалай іске қостым. Неден бастаймыз?', thanks:'Кіріп шыққаныңызға рахмет! Вакансияны талқылағыңыз келсе, байланыс деректерім «Байланыс» бөлімінде.', money:'Жалақы күтімдері мен шарттарды жеке талқылаймын. Маған жазыңыз, байланыс деректері «Байланыс» бөлімінде.',
         fallback:'Бұл сұраққа жеке жауап бергенім дұрыс. Маған жазыңыз, байланыс деректері «Байланыс» бөлімінде.'},
-    en:{close:'Close', share:'Share', copied:'Link copied', share_text:'Taiman Gabbassov, Senior System Analyst', hello:"Hi, I'm Taiman", title:'Systems Analyst', qlabel:'Question', ph:'Ask me anything…', send:'Ask',
+    en:{limit_hour:"You’ve asked a lot of questions in a row. Let’s continue in person: my contacts are in the Contact section.", limit_day:'The assistant has answered a lot of questions today and is resting until tomorrow. Please message me directly, contacts are in the Contact section.', close:'Close', share:'Share', copied:'Link copied', share_text:'Taiman Gabbassov, Senior System Analyst', hello:"Hi, I'm Taiman", title:'Systems Analyst', qlabel:'Question', ph:'Ask me anything…', send:'Ask',
         hint:'Ask anything about my experience, an AI assistant will answer.', thinking:'Thinking…', disc:'AI-generated answer based on my résumé', nav:'Sections', avatar:'Avatar', initials:'TG', th_group:'Theme', th_light:'Light theme', th_auto:'Match system', th_dark:'Dark theme',
         t_path:'My path', t_me:'About', t_projects:'Projects', t_skills:'Skills', t_ai:'AI', t_contact:'Contact',
         footer:'Taiman Gabbassov · Senior Systems Analyst · Astana · 2026',
@@ -1537,8 +1537,12 @@ function fallback2D(cv){
     var timer = setTimeout(function(){ if(ctrl) ctrl.abort(); }, 25000);
     fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({question:v, lang:lang, history:history, sid:sid}), signal: ctrl ? ctrl.signal : undefined})
-      .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(r){
+        if(r.status === 429) return r.json().catch(function(){ return {}; }).then(function(j){ return {limited: j && j.error === 'daily_limit' ? 'limit_day' : 'limit_hour'}; });
+        if(!r.ok) throw new Error(r.status); return r.json();
+      })
       .then(function(d){
+        if(d && d.limited){ if(mySeq === askSeq) answer(v, UI[lang][d.limited], false); track('ai_limit', {type:d.limited}); return; }
         if(!d || !d.answer) throw new Error('empty');
         if(mySeq === askSeq) answer(v, d.answer, true);
         history.push({role:'user', content:v}, {role:'assistant', content:d.answer});
