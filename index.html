@@ -22,7 +22,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="theme-color" content="#fbfaf8">
-<script>(function(){try{if(!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))document.documentElement.classList.add('intro')}catch(e){}})();</script>
+<script>document.documentElement.classList.add('is-empty');(function(){try{if(!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))document.documentElement.classList.add('intro')}catch(e){}})();</script>
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script>
 <script defer src="/_vercel/insights/script.js"></script>
 <style>html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
@@ -268,6 +268,9 @@ h1{font-size:clamp(42px,9vw,92px); font-weight:800; line-height:1; letter-spacin
 @media (max-width:760px){ .facts.facts3{grid-template-columns:1fr} }
 
 footer{position:relative; z-index:1; text-align:center; color:var(--muted); font-size:13px; margin-top:36px}
+/* пустое состояние: раздел не открыт, первый экран по центру */
+html.is-empty main{min-height:calc(100svh - 70px); display:flex; flex-direction:column; justify-content:center; padding-bottom:24px}
+.panel{scroll-margin-top:72px}
 
 @media (max-width:760px){
   .tiles{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -343,7 +346,7 @@ html.intro .controls{animation:inFade .8s ease 1.2s both}
   </div>
 
   <nav class="tiles" role="tablist" aria-label="Разделы" data-i18n-aria="nav">
-    <button class="tile" role="tab" id="t-path" aria-controls="panel" aria-selected="true" data-tab="path">
+    <button class="tile" role="tab" id="t-path" aria-controls="panel" aria-selected="false" data-tab="path">
       <svg class="i-path" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19l5-6 4 3 7-9"/><path d="M15 7h5v5"/></svg><span data-i18n="t_path">Мой путь</span></button>
     <button class="tile" role="tab" id="t-me" aria-controls="panel" aria-selected="false" data-tab="me">
       <svg class="i-me" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c.9 1.2 2.1 1.8 3.5 1.8s2.6-.6 3.5-1.8"/><circle cx="9" cy="10" r=".6" fill="currentColor"/><circle cx="15" cy="10" r=".6" fill="currentColor"/></svg><span data-i18n="t_me">Обо мне</span></button>
@@ -357,7 +360,7 @@ html.intro .controls{animation:inFade .8s ease 1.2s both}
       <svg class="i-ct" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="8" r="4"/><path d="M3 20c.8-3.4 3.6-5 7-5"/><circle cx="17" cy="17" r="3"/><path d="M19.2 19.2L21 21"/></svg><span data-i18n="t_contact">Контакты</span></button>
   </nav>
 
-  <section class="panel" id="panel" role="tabpanel" aria-live="polite"></section>
+  <section class="panel" id="panel" role="tabpanel" aria-live="polite" hidden></section>
 </main>
 
 <footer data-i18n="footer">Тайман Габбасов · Senior системный аналитик · Астана · 2026</footer>
@@ -1258,7 +1261,7 @@ function fallback2D(cv){
     ]
   };
 
-  var lang = 'ru', current = 'path';
+  var lang = 'ru', current = null;
   try { var saved = localStorage.getItem('lang'); if(saved && UI[saved]) lang = saved; } catch(e){}
   if(!UI[lang]) lang = 'ru';
 
@@ -1274,6 +1277,13 @@ function fallback2D(cv){
   }
   function show(name){
     current = name;
+    document.documentElement.classList.toggle('is-empty', !name);
+    if(!name){
+      panel.hidden = true; panel.innerHTML = '';
+      tabs.forEach(function(t){ t.setAttribute('aria-selected', 'false'); });
+      return;
+    }
+    panel.hidden = false;
     var tpl = document.getElementById('tpl-' + name + '-' + lang) || document.getElementById('tpl-' + name + '-ru');
     panel.innerHTML = '';
     panel.appendChild(tpl.content.cloneNode(true));
@@ -1338,7 +1348,14 @@ function fallback2D(cv){
     show(current);
   }
 
-  tabs.forEach(function(t){ t.addEventListener('click', function(){ show(t.dataset.tab); track('tab_open', {tab:t.dataset.tab, lang:lang}); }); });
+  var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  tabs.forEach(function(t){ t.addEventListener('click', function(){
+    if(current === t.dataset.tab){ show(null); return; }
+    show(t.dataset.tab); track('tab_open', {tab:t.dataset.tab, lang:lang});
+    // раздел открылся ниже экрана: прокручиваем так, чтобы плитки остались сверху, а под ними был виден раздел
+    var nav = t.parentNode, r = panel.getBoundingClientRect();
+    if(r.top > innerHeight * 0.7) window.scrollTo({top: Math.max(0, nav.getBoundingClientRect().top + scrollY - 72), behavior: reduceMotion ? 'auto' : 'smooth'});
+  }); });
   langBtns.forEach(function(b){ b.addEventListener('click', function(){ applyLang(b.dataset.lang); track('lang_switch', {lang:b.dataset.lang}); }); });
   document.addEventListener('click', function(e){
     var a = e.target.closest && e.target.closest('a[href]'); if(!a) return;
