@@ -1,11 +1,37 @@
 // Серверная функция Vercel: отвечает на вопросы посетителей по базе знаний.
 // Ключ API хранится в переменной окружения ANTHROPIC_API_KEY (Vercel → Settings → Environment Variables).
 import { KB } from './_kb.js';
+import { createHash } from 'crypto';
 
 const MODEL = process.env.CHAT_MODEL || 'claude-haiku-5-5';
 const MAX_Q = 600;          // максимальная длина вопроса, символов
 const MAX_TURNS = 6;        // сколько последних реплик диалога учитывать
 const LIMIT_PER_HOUR = 30;  // вопросов в час с одного IP (простая защита от злоупотреблений)
+
+const DAILY_LIMIT = parseInt(process.env.DAILY_LIMIT || '300', 10); // вопросов в сутки на весь сайт
+
+// Строгие лимиты через Upstash Redis (Vercel → Storage). Если хранилище не подключено, работает лимит в памяти.
+const REDIS_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const REDIS_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+async function redisLimits(ip) {
+  if (!REDIS_URL || !REDIS_TOKEN) return null;
+  const now = new Date();
+  const day = now.toISOString().slice(0, 10), hour = now.toISOString().slice(0, 13);
+  const ipKey = 'chat:ip:' + createHash('sha256').update(ip).digest('hex').slice(0, 16) + ':' + hour;
+  const dayKey = 'chat:day:' + day;
+  const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 2500);
+  try {
+    const r = await fetch(REDIS_URL.replace(/\/$/, '') + '/pipeline', {
+      method: 'POST', signal: ctrl.signal,
+      headers: { Authorization: 'Bearer ' + REDIS_TOKEN, 'content-type': 'application/json' },
+      body: JSON.stringify([['INCR', ipKey], ['EXPIRE', ipKey, 3700], ['INCR', dayKey], ['EXPIRE', dayKey, 172800]])
+    });
+    if (!r.ok) throw new Error('redis ' + r.status);
+    const out = await r.json();
+    return { ip: Number(out[0]?.result) || 0, day: Number(out[2]?.result) || 0 };
+  } catch (e) { console.error('Redis limit check failed', e?.message); return null; }
+  finally { clearTimeout(timer); }
+}
 
 const hits = new Map();
 function limited(ip) {
@@ -68,6 +94,11 @@ export default async function handler(req, res) {
 
   const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
   if (limited(ip)) return res.status(429).json({ error: 'rate_limited' });
+  const counts = await redisLimits(ip);
+  if (counts) {
+    if (counts.day > DAILY_LIMIT) return res.status(429).json({ error: 'daily_limit' });
+    if (counts.ip > LIMIT_PER_HOUR) return res.status(429).json({ error: 'rate_limited' });
+  }
 
   let body = req.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = {}; } }
