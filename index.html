@@ -128,6 +128,8 @@ h1{font-size:clamp(42px,9vw,92px); font-weight:800; line-height:1; letter-spacin
 .chips{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:12px}
 .chip{font:inherit; font-size:13px; color:var(--muted); background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:6px 12px; cursor:pointer}
 .chip:hover{color:var(--ink); border-color:var(--muted)}
+.chip[aria-pressed="true"]{color:var(--ink); border-color:var(--ink)}
+@media (prefers-reduced-motion:no-preference){ .chip{transition:color .2s ease, border-color .2s ease, background .2s ease} }
 .answer{margin-top:14px; background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:16px 18px; text-align:left; position:relative}
 .answer .q{padding-right:30px}
 .aclose{position:absolute; top:10px; right:10px; width:28px; height:28px; border:0; border-radius:50%; background:transparent; color:var(--muted); cursor:pointer; display:grid; place-items:center; -webkit-tap-highlight-color:transparent}
@@ -1373,7 +1375,7 @@ function fallback2D(cv){
     if(boxRM || !box.animate || Math.abs(h1 - h0) < 1){ if(done) done(); return; }
     var c = getComputedStyle(box), cs = {pt:c.paddingTop, pb:c.paddingBottom, mt:c.marginTop, bt:c.borderTopWidth, bb:c.borderBottomWidth};
     box.style.overflow = 'hidden';
-    var a = box.animate([boxFrame(h0, op0, cs), boxFrame(h1, h1 === 0 ? 0 : 1, cs)], {duration: Math.min(420, 220 + Math.abs(h1 - h0) * 0.4), easing: 'cubic-bezier(.25,.8,.25,1)'});
+    var a = box.animate([boxFrame(h0, op0, cs), boxFrame(h1, h1 === 0 ? 0 : 1, cs)], {duration: Math.min(650, 360 + Math.abs(h1 - h0) * 0.6), easing: h1 < h0 ? 'cubic-bezier(.45,0,.25,1)' : 'cubic-bezier(.22,.7,.2,1)'});
     boxAnim = a;
     a.onfinish = function(){ if(boxAnim !== a) return; boxAnim = null; box.style.overflow = ''; if(done) done(); };
   }
@@ -1383,8 +1385,9 @@ function fallback2D(cv){
     aq.textContent = q; at.textContent = a; disc.hidden = !showDisc; box.hidden = false;
     animateBox(h0, boxH(), h0 ? 1 : 0);
   }
+  function setChip(el){ chips.querySelectorAll('.chip').forEach(function(c){ c.setAttribute('aria-pressed', c === el ? 'true' : 'false'); }); }
   function closeAnswer(){
-    askSeq++;
+    askSeq++; setChip(null);
     var h0 = boxH(); stopBoxAnim();
     animateBox(h0, 0, 1, function(){ box.hidden = true; });
     if(boxRM || !box.animate) box.hidden = true;
@@ -1392,8 +1395,10 @@ function fallback2D(cv){
   function buildChips(){
     chips.innerHTML = '';
     QA[lang].slice(0,5).forEach(function(item){
-      var b = document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=item.q;
-      b.addEventListener('click', function(){ askSeq++; answer(item.q, item.a, false); track('chip_click', {q:item.q.slice(0,60), lang:lang}); });
+      var b = document.createElement('button'); b.type='button'; b.className='chip'; b.textContent=item.q; b.setAttribute('aria-pressed','false');
+      b.addEventListener('click', function(){
+        if(b.getAttribute('aria-pressed') === 'true' && !box.hidden){ closeAnswer(); return; }
+        askSeq++; answer(item.q, item.a, false); setChip(b); track('chip_click', {q:item.q.slice(0,60), lang:lang}); });
       chips.appendChild(b);
     });
   }
@@ -1455,8 +1460,9 @@ function fallback2D(cv){
     var cs = getComputedStyle(panel);
     var box = {paddingTop:cs.paddingTop, paddingBottom:cs.paddingBottom, marginTop:cs.marginTop, borderTopWidth:cs.borderTopWidth, borderBottomWidth:cs.borderBottomWidth};
     panel.style.overflow = 'hidden'; panel.style.boxSizing = 'border-box';
-    var a = panel.animate([boxFrame(h0, op0, box), boxFrame(h1, h1 === 0 ? 0 : 1, box)],
-      {duration: Math.min(520, 260 + Math.abs(h1 - h0) * 0.12), easing: 'cubic-bezier(.25,.8,.25,1)'});
+    var mid = boxFrame(h0 + (h1 - h0) * 0.5, h1 === 0 ? 0.35 : Math.max(op0, 0.6), box); mid.offset = 0.5;
+    var a = panel.animate([boxFrame(h0, op0, box), mid, boxFrame(h1, h1 === 0 ? 0 : 1, box)],
+      {duration: Math.min(800, 420 + Math.abs(h1 - h0) * 0.15), easing: h1 < h0 ? 'cubic-bezier(.45,0,.25,1)' : 'cubic-bezier(.22,.7,.2,1)'});
     panelAnim = a;
     a.onfinish = function(){ if(panelAnim !== a) return; panelAnim = null; panel.style.overflow = ''; panel.style.boxSizing = ''; if(done) done(); };
   }
@@ -1514,7 +1520,7 @@ function fallback2D(cv){
     if(asking) return;
     if(coarse) input.blur();
     asking = true; box.classList.add('loading'); sendBtn.setAttribute('aria-busy', 'true'); track('ai_question', {lang:lang});
-    var mySeq = ++askSeq;
+    var mySeq = ++askSeq; setChip(null);
     answer(v, UI[lang].thinking, false);
     var ctrl = ('AbortController' in window) ? new AbortController() : null;
     var timer = setTimeout(function(){ if(ctrl) ctrl.abort(); }, 25000);
