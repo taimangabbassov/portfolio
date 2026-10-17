@@ -33,6 +33,20 @@ async function redisLimits(ip) {
   finally { clearTimeout(timer); }
 }
 
+// Журнал вопросов в Upstash: список chat:log (последние 2000 записей), смотреть в Upstash → Data Browser
+async function redisLog(entry) {
+  if (!REDIS_URL || !REDIS_TOKEN) return;
+  const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 2500);
+  try {
+    await fetch(REDIS_URL.replace(/\/$/, '') + '/pipeline', {
+      method: 'POST', signal: ctrl.signal,
+      headers: { Authorization: 'Bearer ' + REDIS_TOKEN, 'content-type': 'application/json' },
+      body: JSON.stringify([['LPUSH', 'chat:log', JSON.stringify(entry)], ['LTRIM', 'chat:log', 0, 1999]])
+    });
+  } catch (e) { console.error('Redis log failed', e?.message); }
+  finally { clearTimeout(timer); }
+}
+
 const hits = new Map();
 function limited(ip) {
   const now = Date.now(), hour = 3600e3;
@@ -109,7 +123,10 @@ export default async function handler(req, res) {
   const country = String(req.headers['x-vercel-ip-country'] || '').slice(0, 2);
   const sid = String(body?.sid || '').replace(/[^a-z0-9]/gi, '').slice(0, 8);
   const turn = Array.isArray(body?.history) ? Math.floor(body.history.length / 2) + 1 : 1;
-  const log = (extra) => notifyTelegram({ question, lang, country, sid, turn, ...extra });
+  const log = (extra) => Promise.all([
+    notifyTelegram({ question, lang, country, sid, turn, ...extra }),
+    redisLog({ time: new Date().toISOString(), lang, country, visitor: sid, turn, question, answer: extra.answer || '', error: extra.error || '' })
+  ]);
 
   const history = Array.isArray(body?.history) ? body.history.slice(-MAX_TURNS) : [];
   const messages = [];
@@ -124,6 +141,7 @@ export default async function handler(req, res) {
   if (messages.length && messages[messages.length - 1].role === 'user') messages.pop();
   messages.push({ role: 'user', content: question });
 
+  let started = false, full = '';
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -131,23 +149,46 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 500,
+        stream: true,
         system: [{ type: 'text', text: systemPrompt(lang), cache_control: { type: 'ephemeral' } }],
         messages
       })
     });
-    if (!r.ok) {
-      const t = await r.text();
+    if (!r.ok || !r.body) {
+      const t = await r.text().catch(() => '');
       console.error('Anthropic API error', r.status, t.slice(0, 500));
       await log({ error: 'API ' + r.status });
       return res.status(502).json({ error: 'upstream' });
     }
-    const data = await r.json();
-    const answer = (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n').trim();
-    await log({ answer });
-    return res.status(200).json({ answer });
+    // ответ уходит на сайт по кусочкам, по мере генерации
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('X-Accel-Buffering', 'no');
+    started = true;
+    const reader = r.body.getReader(), dec = new TextDecoder();
+    let buf = '';
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data:')) continue;
+        let ev; try { ev = JSON.parse(line.slice(5).trim()); } catch { continue; }
+        if (ev.type === 'content_block_delta' && ev.delta && ev.delta.type === 'text_delta' && ev.delta.text) {
+          full += ev.delta.text; res.write(ev.delta.text);
+        } else if (ev.type === 'error') {
+          console.error('Anthropic stream error', JSON.stringify(ev).slice(0, 300));
+        }
+      }
+    }
+    await log(full.trim() ? { answer: full.trim() } : { error: 'empty' });
+    return res.end();
   } catch (e) {
     console.error(e);
-    await log({ error: e?.name === 'AbortError' ? 'timeout' : 'network' });
+    await log(full.trim() ? { answer: full.trim(), error: 'interrupted' } : { error: e?.name === 'AbortError' ? 'timeout' : 'network' });
+    if (started) return res.end();
     return res.status(502).json({ error: 'upstream' });
   }
 }
