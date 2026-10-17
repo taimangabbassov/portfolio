@@ -228,10 +228,6 @@ h1{font-size:clamp(42px,9vw,92px); font-weight:800; line-height:1; letter-spacin
 .share-label{font-size:13px; font-weight:600}
 @media (max-width:1199px){ .share button{padding:6px 9px} .share-label{display:none} .hero{padding-top:76px} }
 .share svg{width:16px; height:16px}
-.cta{display:flex; justify-content:center; margin-top:16px}
-.cta .cbtn{padding:11px 20px; font-size:15px; font-weight:600; border-radius:999px; box-shadow:0 10px 30px -14px rgba(30,40,80,.45)}
-.cta .cbtn small{font-size:12px; font-weight:600; opacity:.6; margin-left:2px}
-@media (prefers-reduced-motion:no-preference){.cta .cbtn{transition:transform .15s ease}.cta .cbtn:hover{transform:translateY(-1px)}}
 .toast{position:fixed; left:50%; bottom:calc(24px + env(safe-area-inset-bottom, 0px)); transform:translate(-50%, 20px); z-index:20;
   background:var(--ink); color:var(--bg); font-size:14px; font-weight:500; padding:10px 18px; border-radius:999px; opacity:0; pointer-events:none;
   transition:opacity .2s ease, transform .2s ease; box-shadow:0 12px 30px -12px rgba(0,0,0,.4)}
@@ -292,7 +288,6 @@ html.intro .chips .chip:nth-child(1){animation-delay:1.3s} html.intro .chips .ch
 html.intro .chips .chip:nth-child(3){animation-delay:1.42s} html.intro .chips .chip:nth-child(4){animation-delay:1.48s}
 html.intro .chips .chip:nth-child(5){animation-delay:1.54s}
 html.intro .hint{animation:inFade .6s ease 1.6s both}
-html.intro .cta{animation:inUp .6s cubic-bezier(.2,.8,.2,1) 1.6s both}
 html.intro .tile{animation:inUp .6s cubic-bezier(.2,.8,.2,1) both}
 html.intro .tile:nth-child(1){animation-delay:1.45s} html.intro .tile:nth-child(2){animation-delay:1.51s}
 html.intro .tile:nth-child(3){animation-delay:1.57s} html.intro .tile:nth-child(4){animation-delay:1.63s}
@@ -338,7 +333,6 @@ html.intro .controls{animation:inFade .8s ease 1.2s both}
     <div class="chips" id="chips"></div>
     <div class="answer" id="answer" hidden aria-live="polite"><div class="q" id="aq"></div><p id="at"></p><small class="adisc" id="adisc" data-i18n="disc" hidden>Ответ сгенерирован ИИ по моему резюме</small></div>
     <div class="hint" data-i18n="hint">Спросите что угодно о моём опыте, ответит ИИ-ассистент.</div>
-    <div class="cta"><a class="cbtn primary" id="cvBtn" href="Gabbassov_Taiman_Senior_System_Analyst_RU.pdf" download="Gabbassov_Taiman_Senior_System_Analyst_RU.pdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span data-i18n="cv">Скачать резюме</span><small>PDF</small></a></div>
   </div>
 
   <nav class="tiles" role="tablist" aria-label="Разделы" data-i18n-aria="nav">
@@ -1132,19 +1126,19 @@ function fallback2D(cv){
 
 (function(){
   var UI = {
-    ru:{cv:'Скачать резюме', share:'Поделиться', copied:'Ссылка скопирована', share_text:'Тайман Габбасов, Senior системный аналитик', hello:'Привет, я Тайман', title:'Системный аналитик', qlabel:'Вопрос', ph:'Спросите меня о чём угодно…', send:'Спросить',
+    ru:{share:'Поделиться', copied:'Ссылка скопирована', share_text:'Тайман Габбасов, Senior системный аналитик', hello:'Привет, я Тайман', title:'Системный аналитик', qlabel:'Вопрос', ph:'Спросите меня о чём угодно…', send:'Спросить',
         hint:'Спросите что угодно о моём опыте, ответит ИИ-ассистент.', thinking:'Думаю…', disc:'Ответ сгенерирован ИИ по моему резюме', nav:'Разделы', avatar:'Аватар', initials:'ТГ', th_group:'Тема', th_light:'Светлая тема', th_auto:'Как в системе', th_dark:'Тёмная тема',
         t_path:'Мой путь', t_me:'Обо мне', t_projects:'Проекты', t_skills:'Навыки', t_ai:'ИИ', t_contact:'Контакты',
         footer:'Тайман Габбасов · Senior системный аналитик · Астана · 2026',
         personal:'Здесь я рассказываю только о работе. Личные вопросы, например возраст, давайте обсудим при встрече. Контакты в разделе «Контакты».',
         fallback:'На этот вопрос лучше отвечу лично. Напишите мне, контакты в разделе «Контакты».'},
-    kk:{cv:'Түйіндемені жүктеу', share:'Бөлісу', copied:'Сілтеме көшірілді', share_text:'Тайман Габбасов, Senior жүйелік аналитик', hello:'Сәлем, мен Тайманмын', title:'Жүйелік аналитик', qlabel:'Сұрақ', ph:'Маған кез келген сұрақ қойыңыз…', send:'Сұрау',
+    kk:{share:'Бөлісу', copied:'Сілтеме көшірілді', share_text:'Тайман Габбасов, Senior жүйелік аналитик', hello:'Сәлем, мен Тайманмын', title:'Жүйелік аналитик', qlabel:'Сұрақ', ph:'Маған кез келген сұрақ қойыңыз…', send:'Сұрау',
         hint:'Тәжірибем туралы кез келген сұрақ қойыңыз, ЖИ-көмекші жауап береді.', thinking:'Ойланып жатырмын…', disc:'Жауапты ЖИ менің түйіндемем бойынша жасады', nav:'Бөлімдер', avatar:'Аватар', initials:'ТГ', th_group:'Тақырып', th_light:'Ашық тақырып', th_auto:'Жүйедегідей', th_dark:'Қараңғы тақырып',
         t_path:'Менің жолым', t_me:'Мен туралы', t_projects:'Жобалар', t_skills:'Дағдылар', t_ai:'ЖИ', t_contact:'Байланыс',
         footer:'Тайман Габбасов · Senior жүйелік аналитик · Астана · 2026',
         personal:'Мұнда тек жұмысым туралы айтамын. Жеке сұрақтарды, мысалы жасымды, кездескенде талқылайық. Байланыс деректері «Байланыс» бөлімінде.',
         fallback:'Бұл сұраққа жеке жауап бергенім дұрыс. Маған жазыңыз, байланыс деректері «Байланыс» бөлімінде.'},
-    en:{cv:'Download résumé', share:'Share', copied:'Link copied', share_text:'Taiman Gabbassov, Senior System Analyst', hello:"Hi, I'm Taiman", title:'Systems Analyst', qlabel:'Question', ph:'Ask me anything…', send:'Ask',
+    en:{share:'Share', copied:'Link copied', share_text:'Taiman Gabbassov, Senior System Analyst', hello:"Hi, I'm Taiman", title:'Systems Analyst', qlabel:'Question', ph:'Ask me anything…', send:'Ask',
         hint:'Ask anything about my experience, an AI assistant will answer.', thinking:'Thinking…', disc:'AI-generated answer based on my résumé', nav:'Sections', avatar:'Avatar', initials:'TG', th_group:'Theme', th_light:'Light theme', th_auto:'Match system', th_dark:'Dark theme',
         t_path:'My path', t_me:'About', t_projects:'Projects', t_skills:'Skills', t_ai:'AI', t_contact:'Contact',
         footer:'Taiman Gabbassov · Senior Systems Analyst · Astana · 2026',
@@ -1256,7 +1250,6 @@ function fallback2D(cv){
       chips.appendChild(b);
     });
   }
-  var CV = {ru:'Gabbassov_Taiman_Senior_System_Analyst_RU.pdf', kk:'Gabbassov_Taiman_Senior_System_Analyst_KZ.pdf', en:'Gabbassov_Taiman_Senior_System_Analyst_EN.pdf'};
   var SITE = 'https://taiman-gabbassov.vercel.app/';
   var toastEl = null, toastT;
   function toast(msg){
@@ -1283,7 +1276,6 @@ function fallback2D(cv){
     }
   });
   function applyLang(l){
-    var cvb = document.getElementById('cvBtn'); if(cvb && CV[l]){ cvb.setAttribute('href', CV[l]); cvb.setAttribute('download', CV[l]); }
     lang = l;
     try { localStorage.setItem('lang', l); } catch(e){}
     document.documentElement.lang = l;
