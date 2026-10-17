@@ -27,11 +27,6 @@
 <script defer src="/_vercel/insights/script.js"></script>
 <style>html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 <title>Тайман Габбасов</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&display=swap"></noscript>
 <style>
 /* Layout: визитка по центру: приветствие, крупная должность, аватар, строка вопроса, 5 плиток-разделов; под ними панель выбранного раздела. Фон: мягкие цветные «дымные» пятна и водяной знак-фамилия. */
 :root{
@@ -269,7 +264,8 @@ h1{font-size:clamp(42px,9vw,92px); font-weight:800; line-height:1; letter-spacin
 
 footer{position:relative; z-index:1; text-align:center; color:var(--muted); font-size:13px; margin-top:36px}
 /* пустое состояние: раздел не открыт, первый экран по центру */
-html.is-empty main{min-height:calc(100svh - 70px); display:flex; flex-direction:column; justify-content:center; padding-bottom:24px}
+html.is-empty footer{display:none}
+html.is-empty main{min-height:calc(100svh - 56px); display:flex; flex-direction:column; justify-content:center; padding-bottom:24px}
 .panel{scroll-margin-top:72px}
 
 @media (max-width:760px){
@@ -304,6 +300,37 @@ html.intro .tile:nth-child(3){animation-delay:1.57s} html.intro .tile:nth-child(
 html.intro .tile:nth-child(5){animation-delay:1.69s} html.intro .tile:nth-child(6){animation-delay:1.75s}
 html.intro .panel{animation:inUp .8s cubic-bezier(.2,.8,.2,1) 1.85s both}
 html.intro .controls{animation:inFade .8s ease 1.2s both}
+
+/* первый экран в стиле примера: системный шрифт, компактные размеры */
+:root{--f:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+.hero{gap:4px}
+.hello{font-size:20px; font-weight:500}
+h1{font-size:60px; font-weight:700; letter-spacing:-.02em; line-height:1.05; margin:2px 0 0}
+.face{margin-top:26px; width:160px}
+.ask{margin-top:22px; width:min(400px,100%)}
+.ask form{padding:5px 5px 5px 18px; box-shadow:0 4px 18px -12px rgba(30,40,80,.22)}
+.ask input{font-size:14px; padding:8px 0}
+.send{width:34px; height:34px}
+.send svg{width:16px; height:16px}
+.send[aria-busy="true"]::after{width:14px; height:14px; border-width:2px}
+.chips{gap:6px; margin-top:10px}
+.chip{font-size:12px; padding:4px 10px}
+.hint{font-size:11px; margin-top:6px}
+.tiles{grid-template-columns:repeat(6,104px); justify-content:center; gap:10px; margin-top:16px; width:auto}
+.tile{border-radius:14px; padding:13px 4px 11px; gap:5px; font-size:13px; font-weight:500; white-space:nowrap}
+.tile svg{width:16px; height:16px}
+.tile[aria-selected="true"]{box-shadow:0 6px 18px -12px rgba(30,40,80,.4)}
+.lang button{font-size:12px; padding:5px 9px}
+.theme svg,.share svg{width:14px; height:14px}
+.share-label{font-size:12px}
+.watermark{top:calc(100svh - .72em); height:.72em; font-size:clamp(70px,14vw,220px)}
+@media (max-width:760px){
+  .hello{font-size:17px}
+  h1{font-size:40px}
+  .face{width:140px}
+  .ask input{font-size:16px}
+  .tiles{grid-template-columns:repeat(3,minmax(0,1fr)); width:100%}
+}
 </style>
 
 <div class="bg" aria-hidden="true">
