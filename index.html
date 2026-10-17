@@ -265,7 +265,9 @@ h1{font-size:clamp(42px,9vw,92px); font-weight:800; line-height:1; letter-spacin
 footer{position:relative; z-index:1; text-align:center; color:var(--muted); font-size:13px; margin-top:36px}
 /* пустое состояние: раздел не открыт, первый экран по центру */
 html.is-empty footer{display:none}
-html.is-empty main{min-height:calc(100svh - 56px); display:flex; flex-direction:column; justify-content:center; padding-bottom:24px}
+main{padding-top:var(--top-pad, 0px)}
+html.is-empty main{min-height:calc(100svh - 56px)}
+@media (prefers-reduced-motion:no-preference){ .panel:not([hidden]){animation:panelIn .35s ease-out} @keyframes panelIn{from{opacity:0} to{opacity:1}} }
 .panel{scroll-margin-top:72px}
 
 @media (max-width:760px){
@@ -388,6 +390,20 @@ h1{font-size:60px; font-weight:700; letter-spacing:-.02em; line-height:1.05; mar
 
   <section class="panel" id="panel" role="tabpanel" aria-live="polite" hidden></section>
 </main>
+<script>
+/* первый экран по центру: отступ сверху считается один раз и не меняется при открытии раздела */
+(function(){
+  var root = document.documentElement, main = document.querySelector('main'), tiles = document.querySelector('.tiles');
+  function center(){
+    if(!root.classList.contains('is-empty')) return;
+    root.style.setProperty('--top-pad', '0px');
+    var h = tiles.getBoundingClientRect().bottom - main.getBoundingClientRect().top;
+    root.style.setProperty('--top-pad', Math.max(0, Math.round((innerHeight - 56 - h) / 2)) + 'px');
+  }
+  center();
+  var t; addEventListener('resize', function(){ clearTimeout(t); t = setTimeout(center, 120); });
+})();
+</script>
 
 <footer data-i18n="footer">Тайман Габбасов · Senior системный аналитик · Астана · 2026</footer>
 
@@ -1390,9 +1406,6 @@ function fallback2D(cv){
   tabs.forEach(function(t){ t.addEventListener('click', function(){
     if(current === t.dataset.tab){ show(null); return; }
     show(t.dataset.tab); track('tab_open', {tab:t.dataset.tab, lang:lang});
-    // раздел открылся ниже экрана: прокручиваем так, чтобы плитки остались сверху, а под ними был виден раздел
-    var nav = t.parentNode, r = panel.getBoundingClientRect();
-    if(r.top > innerHeight * 0.7) window.scrollTo({top: Math.max(0, nav.getBoundingClientRect().top + scrollY - 72), behavior: reduceMotion ? 'auto' : 'smooth'});
   }); });
   langBtns.forEach(function(b){ b.addEventListener('click', function(){ applyLang(b.dataset.lang); track('lang_switch', {lang:b.dataset.lang}); }); });
   document.addEventListener('click', function(e){
