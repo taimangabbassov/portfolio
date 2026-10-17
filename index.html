@@ -57,7 +57,8 @@
 }
 *{box-sizing:border-box}
 html,body{min-height:100%}
-html{background:var(--bg)}
+html{background:var(--bg); scrollbar-gutter:stable; overflow-anchor:none}
+@supports not (scrollbar-gutter:stable){ html{overflow-y:scroll} }
 body{
   margin:0; background:var(--bg); color:var(--ink); font-family:var(--f); font-size:16px; line-height:1.55;
   padding-left:max(16px, env(safe-area-inset-left, 0px));
